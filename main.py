@@ -1,22 +1,31 @@
-#imports section, imports functions from the other modules(files) within this directory
+# Import the required functions from other modules in the project directory
 from camera import initialize_camera, capture_frame
 from face_detection import detect_face_and_eyes
 from behavior_analysis import analyze_behavior
 from vehicle_control import lock_engine
 
-#main function declaration and definition: monitor_driver()
+# Main function declaration and definition
 def monitor_driver():
-    cap = initialize_camera() #initializes the camera and returns a cap object. This is what starts the camera
-    while True: #starts an infinite loop to keep on capturing frames, untill the unexpected condition is seen
-        frame=capture_frame(cap) #captures a single frame, then the frame will be processed in the next steps
-        if detect_face_and_eyes(frame): #checks if the driver's face and eyes are present in the captured frame
-            if analyze_behavior(frame): #analyzes the frame for signs of intoxicated behavior, like abnoramal blinking, head tilting, or gaze direction, if detected, program moves to next step
-                lock_engine() #function to lock the engine, hence prevent the driver from driving
-                print("Driver intoxicated. Engine Locked!") #outputs a message to indicate that the engine is locked
-                break #exits the loop, ending the monitoring process
-            cap.release() #releases the camera resource once the loop is exited, stopping the video capture
+    # Initializes the camera and returns a capture object
+    cap = initialize_camera()
+    while True:
+        # Capture a single frame for processing
+        frame = capture_frame(cap)
+        
+        # Detect face and eyes using MediaPipe (now adapted to work with MediaPipe landmarks)
+        face_landmarks = detect_face_and_eyes(frame)
+        
+        # Check if landmarks are detected
+        if face_landmarks:
+            # Analyzes behavior for signs of intoxication or drowsiness
+            if analyze_behavior(face_landmarks, frame):
+                lock_engine()  # Locks the engine if intoxicated behavior is detected
+                print("Driver intoxicated. Engine Locked!")  # Message indicating the engine is locked
+                break  # Exits the monitoring loop
 
-#running the program            
-if __name__ == "__main__": #checks if the script is being run directly(not imported as a module) If it is, it calls the monitor_driver() function to start the program
+    # Release the camera resource once the loop is exited
+    cap.release()
+
+# Run the program
+if __name__ == "__main__":
     monitor_driver()
-    
